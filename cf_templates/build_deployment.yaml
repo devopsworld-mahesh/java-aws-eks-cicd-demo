@@ -176,7 +176,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "buildspec_codeanalysis.yml"
+        BuildSpec: "../buildspec_codeanalysis.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -205,7 +205,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "buildspec.yml"
+        BuildSpec: "../buildspec.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -240,7 +240,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "buildspec_deploy.yml"
+        BuildSpec: "../buildspec_deploy.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -306,7 +306,7 @@ Resources:
                   Version: 1
                   Provider: CodeBuild
                 Configuration:
-                  ProjectName: !Ref CodeBuildImageProject
+                  ProjectName: !Ref StaticCodeAnalysis
                 InputArtifacts:
                   - Name: SourceCodeApp
                 OutputArtifacts:
