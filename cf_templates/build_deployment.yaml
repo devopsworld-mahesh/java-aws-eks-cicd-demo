@@ -4,8 +4,8 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: CFN Template to deploy CodePipeline to build Docker Image of java application and push to ECR and deploy to EKS
 
 Parameters:
-  SourceRepoName:
-    Type: String
+  #SourceRepoName:
+    #Type: String
   CodeBranchName:
     Type: String
     Default: master
@@ -17,6 +17,18 @@ Parameters:
     Type: String
   EcrDockerRepository:
     Type: String
+  SonarCloudToken:
+    Type: String
+    NoEcho: 'True'
+  SonarProjectKey:
+    Type: String
+    NoEcho: 'True'
+  GithubConnectionArn:
+    Type: String
+    NoEcho: 'True'
+  GithubRepoId:
+    Type: String
+
 
 Resources:
 
@@ -91,6 +103,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                   - codecommit:GitPull
+                  - ssm:GetParameters
               - Resource: '*'
                 Effect: Allow
                 Action:
@@ -145,14 +158,43 @@ Resources:
               #  Effect: Allow
               #  Action: sts:AssumeRole
 
+  StaticCodeAnalysis:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+#        Location:
+#          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
+        #Type: CODECOMMIT
+        Type: CODEPIPELINE
+        BuildSpec: "buildspec_codeanalysis.yml"
+      TimeoutInMinutes: 30
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Type: LINUX_CONTAINER
+        Image: "aws/codebuild/standard:4.0"
+        PrivilegedMode: True
+        EnvironmentVariables:
+          - Name: SONAR_TOKEN
+            Type: PARAMETER_STORE
+            Value: !Ref SonarCloudToken
+          - Name: SONAR_PROJECT_KEY
+            Type: PARAMETER_STORE
+            Value: !Ref SonarProjectKey
+      Name:
+        Fn::Sub: CodeAnalysis-${AWS::StackName}
+      ServiceRole:
+        Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
+
   CodeBuildImageProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
         Type: CODEPIPELINE
       Source:
-        Location:
-          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
+#        Location:
+#          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
         BuildSpec: "buildspec.yml"
@@ -169,6 +211,12 @@ Resources:
             Value: !Ref EcrDockerRepository
           - Name: AWS_ACCOUNT_ID
             Value: !Ref AWS::AccountId
+#          - Name: SONAR_TOKEN
+#            Type: PARAMETER_STORE
+#            Value: !Ref SonarCloudToken
+#          - Name: SONAR_PROJECT_KEY
+#            Type: PARAMETER_STORE
+#            Value: !Ref SonarProjectKey
       Name: 
         Fn::Sub: Build-${AWS::StackName}
       ServiceRole:
@@ -180,8 +228,8 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Source:
-        Location:
-          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
+#        Location:
+#          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
         BuildSpec: "buildspec_deploy.yml"
@@ -211,7 +259,7 @@ Resources:
       ServiceRole:
         Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
 
-  CodePipelineCodeCommit:
+  MyGithubCodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name:
@@ -225,18 +273,37 @@ Resources:
         - Name: Source
           Actions:
             - Name: App
+              Namespace: "SourceVariables"
               ActionTypeId:
                 Category: Source
                 Owner: AWS
                 Version: 1
-                Provider: CodeCommit
+                Provider: CodeStarSourceConnection
               Configuration:
+                ConnectionArn: !Ref GithubConnectionArn
                 BranchName: !Ref CodeBranchName
-                RepositoryName:
-                  Ref: SourceRepoName
+                #RepositoryName:
+                  #Ref: SourceRepoName
+                FullRepositoryId: !Ref GithubRepoId
+                OutputArtifactFormat: "CODE_ZIP"
               OutputArtifacts:
                 - Name: SourceCodeApp
               RunOrder: 1
+        - Name: Review-Code-Analysis
+          Actions:
+              - Name: CodeAnalysis
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Version: 1
+                  Provider: CodeBuild
+                Configuration:
+                  ProjectName: !Ref CodeBuildImageProject
+                InputArtifacts:
+                  - Name: SourceCodeApp
+                OutputArtifacts:
+                  - Name: CodeAnalysisOutput
+                RunOrder: 2
         - Name: Build
           Actions:
             - Name: Build
@@ -251,7 +318,7 @@ Resources:
                 - Name: SourceCodeApp
               OutputArtifacts:
                 - Name: BuildOutput
-              RunOrder: 2
+              RunOrder: 3
    #DependsOn: CodeBuildImageProject
         - Name: ApprovalToDeploy
           Actions:
@@ -267,7 +334,7 @@ Resources:
                 CustomData: Approval or Reject the build to be deployed on EKS
               InputArtifacts: []
               OutputArtifacts: []
-              RunOrder: 3
+              RunOrder: 4
         - Name: Deploy
           Actions:
             - Name: Deploy
@@ -282,8 +349,8 @@ Resources:
                 - Name: SourceCodeApp
               OutputArtifacts:
                 - Name: DeployOutput
-              RunOrder: 4
-    DependsOn: [ "CodeBuildImageProject", "CodeDeployImageProject" ]
+              RunOrder: 5
+    DependsOn: [ "CodeBuildImageProject", "CodeDeployImageProject", "StaticCodeAnalysis" ]
 
 Outputs:
   CodeBuildServiceRoleARN:

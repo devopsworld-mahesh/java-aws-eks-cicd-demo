@@ -22,6 +22,8 @@
         <docker.name>${docker.registry}/${docker.repo}/${project.build.finalName}:${docker.tag}</docker.name>
         <greeting.host>localhost</greeting.host>
         <greeting.port>8080</greeting.port>
+        <sonar.organization>devopsworld-mahesh</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencies>
