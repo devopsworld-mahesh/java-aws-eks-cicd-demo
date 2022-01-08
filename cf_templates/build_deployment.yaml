@@ -293,7 +293,8 @@ Resources:
                 #RepositoryName:
                   #Ref: SourceRepoName
                 FullRepositoryId: !Ref GithubRepoId
-                OutputArtifactFormat: "CODE_ZIP"
+#                OutputArtifactFormat: "CODE_ZIP"
+                OutputArtifactFormat: "CODEBUILD_CLONE_REF"
               OutputArtifacts:
                 - Name: SourceCodeApp
               RunOrder: 1
