@@ -1,0 +1,77 @@
+Structure:
+
+AppCode:
+app_code
+├── app
+│   ├── Dockerfile
+│   ├── pom.xml
+│   └── src
+│       └── main
+│           ├── java
+│           │   └── org
+│           │       └── aws
+│           │           └── samples
+│           │               └── greeting
+│           │                   ├── Application.java
+│           │                   └── GreetingController.java
+│           └── resources
+│               └── Images
+│                   └── aws_proserve.jpg
+├── app_code.zip   (Zip format of the code to be uploaded to a S3 bucket, incase you need to create AWS CodeCommit and upload the code automatically via cf_templates/codecommit.yaml))
+├── aws-proserve-java-greeting (Name of the application, helm charts reside here)
+│   ├── Chart.yaml
+│   ├── templates
+│   │   ├── NOTES.txt
+│   │   ├── _helpers.tpl
+│   │   ├── deployment.yaml
+│   │   ├── hpa.yaml
+│   │   ├── ingress.yaml
+│   │   ├── service.yaml
+│   │   ├── serviceaccount.yaml
+│   │   └── tests
+│   │       └── test-connection.yaml
+│   └── values.dev.yaml (Values of Helm chart for dev environment)
+├── buildspec.yml   (Build Specifications for Build Process)
+└── buildspec_deploy.yml (Build Specifications for Deploy Process)
+
+Cloudformation templates:
+cf_templates
+├── build_deployment.yaml
+├── codecommit.yaml
+└── kube_aws_auth_configmap_patch.sh
+
+
+Steps:
+
+1) CodeCommitECR Creation: (Optional step) 
+Ensure your AWS CodeCommit and Amazon ECR are in hand. If not, you can run the cloudformation template cf_templates/codecommit.yaml via AWS Console. Ensure that a S3 bucket already exists and you create a folder named 'code' in it and upload the zip file app_code/app_code.zip to the code folder in that S3 bucket.
+   Give the porameter and their values:
+   CodeCommitRepositoryBranchName  : Branch-name where you code will be residing. Put it as master for default
+   CodeCommitRepositoryName        : Preferred Name of AWS CodeCommit repo to be created
+   CodeCommitRepositoryS3Bucket    : S3 BucketName where the code zipfile is residing
+   CodeCommitRepositoryS3BucketObjKey : code/app_code.zip
+   ECRRepositoryName               : Preferred Name of ECR repo to be created
+
+## Important, the above step is purely optional, because this guide assumes you already have a AWS CodeCommit repo with the required java cicd code ready and also Amaazon ECR ready. If not, then you can follow the above step as a reference to create it##
+
+2) Setup Java CICD Pipeline:
+Run the cloudformation template cf_templates/build_deployment.yaml and give the parameter accordingly as mentioned below. Ensure you have the required parameter values ready with you.
+   CodeBranchName   : Branch name of AWS CodeCommit repo, where your code resides
+   EKSClusterName   : Name of your EKS Cluster (not EKSCluster ID)
+   EKSCodeBuildAppName : in this case name of helm app name (aws-proserve-java-greeting)
+   EcrDockerRepository : Name of Amazon ECR repo where the docker images of your code will be stored
+   EnvType             : environment, give dev for now
+   SourceRepoName     : Name of AWS CodeCommit repo, where your code resides
+This will automatically trigger th CodePipeline too.
+
+Once the cloudformation template cf_templates/build_deployment.yaml executes successfully, go to Outputs tab of Java CICD CF Stack in AWS console and get the value of EksCodeBuildkubeRoleARN (this ARN needs to be added to configmap aws_auth of EKS cluster)
+
+3) Patching aws_auth confmap with EksCodeBuildkubeRoleARN received from step2:
+ Run the script: cf_templates/kube_aws_auth_configmap_patch.sh in this way 
+bash cf_templates/kube_aws_auth_configmap_patch.sh <EksCodeBuildkubeRoleARN>
+
+This will add the rolearn in aws_auth configmap of the EKS cluster. Ensure that you are cluster creator of that EKS when running the above script.
+
+4) Go to CodePipeline in AWS console, and there approve the Action 'ApprovaltoDeploy' and it will run the Deploy Phase.
+Once the Deploy phase is completed, go to logs of Deploy phase and get the URL of this app to access via browser.
+
