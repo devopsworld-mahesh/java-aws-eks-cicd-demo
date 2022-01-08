@@ -71,6 +71,7 @@ Resources:
                   - iam:PassRole
                   - codestar-connections:GetConnection
                   - codestar-connections:ListConnections
+                  - codestar-connections:UseConnection
               - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactBucket}/*
                 Effect: Allow
                 Action:
