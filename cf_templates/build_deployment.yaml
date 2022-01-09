@@ -195,7 +195,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "../buildspec_codeanalysis.yml"
+        BuildSpec: "app_code/buildspec_codeanalysis.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -224,7 +224,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "../buildspec.yml"
+        BuildSpec: "app_code/buildspec.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
@@ -259,7 +259,7 @@ Resources:
 #          Fn::Sub: https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${SourceRepoName}
         #Type: CODECOMMIT
         Type: CODEPIPELINE
-        BuildSpec: "../buildspec_deploy.yml"
+        BuildSpec: "app_code/buildspec_deploy.yml"
       TimeoutInMinutes: 30
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
