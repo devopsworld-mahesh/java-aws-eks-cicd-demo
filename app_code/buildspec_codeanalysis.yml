@@ -2,7 +2,7 @@ version: 0.2
 phases:
   install: # Setup Java8 runtime
     runtime-versions:
-      java: corretto8
+      java: corretto11
 
   pre_build: # Setup Sonar scan cli and jq
     commands:
