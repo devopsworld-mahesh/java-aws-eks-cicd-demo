@@ -14,8 +14,8 @@ phases:
   
   build: # Run Sonar Code Analysis
     commands:
-      - cd app_code/app && mvn test && cd ../../
-      - cd app_code/app && mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY && cd ../../
+      - cd app_code/app && mvn clean test && cd ../../
+      - cd app_code/app && mvn clean sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY && cd ../../
       - sleep 5
       - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY >result.json
       - cat result.json
