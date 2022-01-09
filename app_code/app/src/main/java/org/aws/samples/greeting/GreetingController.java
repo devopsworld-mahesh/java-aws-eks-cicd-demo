@@ -2,7 +2,7 @@ package org.aws.samples.greeting;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author MaheshR
