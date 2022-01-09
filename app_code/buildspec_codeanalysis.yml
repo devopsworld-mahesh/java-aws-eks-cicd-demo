@@ -19,4 +19,4 @@ phases:
       - sleep 5
       - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY > result.json
       - cat result.json && export SONAR_PROJECT_SCAN_STATUS=$(jq -r '.projectStatus.status' result.json)
-      - if [ $(SONAR_PROJECT_SCAN_STATUS) == ERROR ] ; then export CODEBUILD_BUILD_SUCCEEDING=0 && exit 1; fi
+      - if [ $(SONAR_PROJECT_SCAN_STATUS) == ERROR ] ; then $CODEBUILD_BUILD_SUCCEEDING -eq 0 && exit 1; fi
