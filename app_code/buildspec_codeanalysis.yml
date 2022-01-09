@@ -18,5 +18,5 @@ phases:
       - cd app_code/app && mvn clean package sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY && cd ../../
       - sleep 5
       - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY > result.json
-      - cat result.json
-      - sh -c "if [ $(jq -r '.projectStatus.status' result.json) = ERROR ] ; then $CODEBUILD_BUILD_SUCCEEDING -eq 0 ; fi"
+      - cat result.json && export SONAR_PROJECT_SCAN_STATUS=$(jq -r '.projectStatus.status' result.json)
+      - if [ $(SONAR_PROJECT_SCAN_STATUS) = ERROR ] ; then export CODEBUILD_BUILD_SUCCEEDING=0 && exit 1; fi
