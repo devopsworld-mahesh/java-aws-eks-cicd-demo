@@ -15,8 +15,4 @@ public class GreetingController {
     public String sayHello() {
         return "Hello from AWS ProServe version2";
     }
-//    public String sayHello(HttpServletRequest request) {
-//        return "Hello from AWS ProServe version2";
-//    }
-   
 }
