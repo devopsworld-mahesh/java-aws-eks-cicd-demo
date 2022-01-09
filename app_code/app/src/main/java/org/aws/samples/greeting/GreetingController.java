@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class GreetingController {
 
 //    @RequestMapping("/hello")
-    @RequestMapping("/hello", method = RequestMethod.GET)
-    public String sayHello() {
+    @RequestMapping(value = "/hello", method = RequestMethod.GET)
+//    public String sayHello() {
+//        return "Hello from AWS ProServe version2";
+//    }
+    public String sayHello(HttpServletRequest request) {
         return "Hello from AWS ProServe version2";
     }
    
