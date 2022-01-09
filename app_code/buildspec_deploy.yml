@@ -1,6 +1,7 @@
 version: 0.2
 phases:
   install: # Install AWS cli, kubectl and Helm3
+    on-failure: ABORT
     commands:
        - apt-get update
        - apt-get install -y git python3 python3-pip
@@ -15,6 +16,7 @@ phases:
        - helm repo add stable https://charts.helm.sh/stable && helm repo update
 
   pre_build: # Check helm version and Add kubeconfig to access to EKS cluster and check readiness of the cluster
+    on-failure: ABORT
     commands:
       - "helm version"
       - "mkdir ~/.kube/"
@@ -24,10 +26,12 @@ phases:
       - "aws sts get-caller-identity"
   
   build: # Deploy app via Helm
+    on-failure: ABORT
     commands:
       - "helm upgrade -i $EKS_CODEBUILD_APP_NAME-$ENV $EKS_CODEBUILD_APP_NAME -f $EKS_CODEBUILD_APP_NAME/values.$ENV.yaml --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME --set image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION"
   
   post_build: # Display the endpoint of the application
+    on-failure: ABORT
     commands:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
       - sleep 20

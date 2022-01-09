@@ -1,6 +1,7 @@
 version: 0.2
 phases:
   install: # Install AWS cli, maven, Trivy
+    on-failure: ABORT
     runtime-versions:
       java: corretto8
     commands:
@@ -16,11 +17,13 @@ phases:
        - apt-get update && apt-get install -y trivy
 
   pre_build: # Check availability of Maven and it's version
+    on-failure: ABORT
     commands:
       - "echo -e '\nMaven version: '"
       - "mvn --version"
   
   build: # Build Docker image and tag it with the commit sha
+    on-failure: ABORT
     commands:
 #      - cd app && mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${SONAR_PROJECT_KEY} && cd ..
       - cd app_code/app && mvn clean package && cd ../../
@@ -29,6 +32,7 @@ phases:
       - docker tag $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
   
   post_build: # Run Trivy to scan docker image, Push the Docker image to the ECR and deploy the app via helm to EKS
+    on-failure: ABORT
     commands:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
