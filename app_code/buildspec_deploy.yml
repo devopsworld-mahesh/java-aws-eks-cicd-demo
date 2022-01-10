@@ -28,7 +28,7 @@ phases:
   build: # Deploy app via Helm
     on-failure: ABORT
     commands:
-      - "helm upgrade -i $EKS_CODEBUILD_APP_NAME-$ENV $EKS_CODEBUILD_APP_NAME -f $EKS_CODEBUILD_APP_NAME/values.$ENV.yaml --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME --set image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - "helm --debug upgrade -i $EKS_CODEBUILD_APP_NAME-$ENV $EKS_CODEBUILD_APP_NAME -f $EKS_CODEBUILD_APP_NAME/values.$ENV.yaml --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME --set image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION"
   
   post_build: # Display the endpoint of the application
     on-failure: ABORT
