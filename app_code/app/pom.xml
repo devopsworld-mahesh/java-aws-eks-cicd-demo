@@ -16,10 +16,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <docker.repo>arungupta</docker.repo>
+        <docker.repo>${env.IMAGE_REPO_NAME}</docker.repo>
         <docker.tag>latest</docker.tag>
-        <docker.registry>registry.hub.docker.com</docker.registry>
-        <docker.name>${docker.registry}/${docker.repo}/${project.build.finalName}:${docker.tag}</docker.name>
+        <docker.registry>${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com/</docker.registry>
+        <docker.name>${docker.registry}/${docker.repo}:${docker.tag}</docker.name>
         <greeting.host>localhost</greeting.host>
         <greeting.port>8080</greeting.port>
         <sonar.organization>devopsworld-mahesh</sonar.organization>
